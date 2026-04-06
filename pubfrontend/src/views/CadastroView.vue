@@ -45,8 +45,19 @@ const statusClass = ref('');
 const handleCadastro = async () => {
   loading.value = true;
   mensagem.value = '';
+
+
+  const xmlPayload = `
+    <CadastroRequestDTO>
+      <username>${user.username}</username>
+      <password>${user.password}</password>
+    </CadastroRequestDTO>
+  `.trim();
+
   try {
-    await api.post('/auth/cadastro', user);
+    // 2. Enviando a string XML em vez do objeto 'user'
+    await api.post('/auth/cadastro', xmlPayload);
+
     statusClass.value = 'msg-sucesso';
     mensagem.value = "SUCESSO! INDO PARA O LOGIN...";
     setTimeout(() => router.push('/login'), 2000);

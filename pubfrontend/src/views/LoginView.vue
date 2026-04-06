@@ -73,12 +73,32 @@ const handleLogin = async () => {
   isLoading.value = true;
   errorMessage.value = '';
 
+  // 1. Montando o XML com as credenciais (LoginRequestDTO)
+  const xmlPayload = `
+    <LoginRequestDTO>
+      <username>${credentials.username}</username>
+      <password>${credentials.password}</password>
+    </LoginRequestDTO>
+  `.trim();
+
   try {
-    const response = await api.post('/auth/login', credentials);
-    const token = response.data.token; 
-    localStorage.setItem('token', token);
-    router.push('/bebidas');
-    
+    // 2. Enviando o XML
+    const response = await api.post('/auth/login', xmlPayload);
+
+    // 3. O backend devolve XML. Precisamos ler e extrair a tag <token>
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(response.data, "application/xml");
+
+    // Pega o texto de dentro da tag <token>
+    const token = xmlDoc.getElementsByTagName("token")[0]?.textContent;
+
+    if (token) {
+      localStorage.setItem('token', token);
+      router.push('/bebidas');
+    } else {
+      errorMessage.value = 'FALHA AO OBTER O TOKEN DO SERVIDOR.';
+    }
+
   } catch (error) {
     console.error(error);
     errorMessage.value = 'ACESSO NEGADO. VERIFIQUE SUAS CREDENCIAIS.';
